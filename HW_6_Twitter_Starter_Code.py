@@ -7,7 +7,7 @@ from requests_oauthlib import OAuth1
 import json
 import requests
 
-import hw6_secrets_starter as secrets # file that contains your OAuth credentials
+import secrets as secrets # file that contains your OAuth credentials
 
 CACHE_FILENAME = "twitter_cache.json"
 CACHE_DICT = {}
@@ -33,7 +33,6 @@ def test_oauth():
     auth = OAuth1(client_key, client_secret, access_token, access_token_secret)
     authentication_state = requests.get(url, auth=auth).json()
     return authentication_state
-
 
 def open_cache():
     ''' Opens the cache file if it exists and loads the JSON into
@@ -73,11 +72,11 @@ def save_cache(cache_dict):
     dumped_json_cache = json.dumps(cache_dict)
     fw = open(CACHE_FILENAME,"w")
     fw.write(dumped_json_cache)
-    fw.close() 
+    fw.close()
 
 
-def construct_unique_key(baseurl, params):
-    ''' constructs a key that is guaranteed to uniquely and 
+def construct_unique_key(baseurl, params): # what is this doing and why is it never called?!
+    ''' constructs a key that is guaranteed to uniquely and
     repeatably identify an API request by its baseurl and params
 
     AUTOGRADER NOTES: To correctly test this using the autograder, use an underscore ("_") 
@@ -96,8 +95,16 @@ def construct_unique_key(baseurl, params):
     string
         the unique key as a string
     '''
-    #TODO Implement function
-    pass
+    # baseurl = "https://api.twitter.com/1.1/search/tweets.json"
+    # hashtag = "#MarchMadness2021"
+    # count = 100
+    
+    # empty_str = ''
+    # empty_str= empty_str + baseurl
+    # for i, j in params:
+    #     if i[0]  = q:
+    #         empty_str = empty_str + "f{q[0]}"
+
 
 
 def make_request(baseurl, params):
@@ -113,11 +120,21 @@ def make_request(baseurl, params):
     Returns
     -------
     dict
-        the data returned from making the request in the form of 
+        the data returned from making the request in the form of
         a dictionary
     '''
-    #TODO Implement function
-    pass
+
+    api_res = (f"https://api.twitter.com/1.1/search/tweets.json?q=#MarchMadness2021&count=100") #query in needs to .lower and replace spaces with + signs
+    itunes_api_resp = requests.get(api_res)
+    json = itunes_api_resp.json()
+    print(json)
+
+    
+    
+    # api_res = (f"{itunes_url}{query_in}") #query in needs to .lower and replace spaces with + signs
+    # itunes_api_resp = requests.get(api_res)
+    # json = itunes_api_resp.json()
+    # return json
 
 
 def make_request_with_cache(baseurl, hashtag, count):
@@ -148,8 +165,13 @@ def make_request_with_cache(baseurl, hashtag, count):
         the results of the query as a dictionary loaded from cache
         JSON
     '''
-    #TODO Implement function
-    pass
+    make_request(baseurl, hashtag)
+
+
+    # api_res = (f"{itunes_url}{query_in}") #query in needs to .lower and replace spaces with + signs
+    # itunes_api_resp = requests.get(api_res)
+    # json = itunes_api_resp.json()
+    # return json
 
 
 def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
@@ -199,3 +221,4 @@ if __name__ == "__main__":
     tweet_data = make_request_with_cache(baseurl, hashtag, count)
     most_common_cooccurring_hashtag = find_most_common_cooccurring_hashtag(tweet_data, hashtag)
     print("The most commonly cooccurring hashtag with {} is {}.".format(hashtag, most_common_cooccurring_hashtag))
+    #print(test_oauth())
