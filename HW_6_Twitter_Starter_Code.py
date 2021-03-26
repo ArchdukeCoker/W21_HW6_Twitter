@@ -24,9 +24,9 @@ oauth = OAuth1(client_key,
 
 def test_oauth():
     ''' Helper function that returns an HTTP 200 OK response code and a 
-    representation of the requesting user if authentication was 
-    successful; returns a 401 status code and an error message if 
-    not. Only use this method to test if supplied user credentials are 
+    representation of the requesting user if authentication was
+    successful; returns a 401 status code and an error message if
+    not. Only use this method to test if supplied user credentials are
     valid. Not used to achieve the goal of this assignment.'''
 
     url = "https://api.twitter.com/1.1/account/verify_credentials.json"
@@ -38,11 +38,11 @@ def open_cache():
     ''' Opens the cache file if it exists and loads the JSON into
     the CACHE_DICT dictionary.
     if the cache file doesn't exist, creates a new cache dictionary
-    
+
     Parameters
     ----------
     None
-    
+
     Returns
     -------
     The opened cache: dict
@@ -59,12 +59,12 @@ def open_cache():
 
 def save_cache(cache_dict):
     ''' Saves the current state of the cache to disk
-    
+
     Parameters
     ----------
     cache_dict: dict
         The dictionary to save
-    
+
     Returns
     -------
     None
@@ -82,41 +82,34 @@ def construct_unique_key(baseurl, params): # what is this doing and why is it ne
     AUTOGRADER NOTES: To correctly test this using the autograder, use an underscore ("_") 
     to join your baseurl with the params and all the key-value pairs from params
     E.g., baseurl_key1_value1
-    
+
     Parameters
     ----------
     baseurl: string
         The URL for the API endpoint
     params: dict
         A dictionary of param:value pairs
-    
+
     Returns
     -------
     string
         the unique key as a string
     '''
-    # baseurl = "https://api.twitter.com/1.1/search/tweets.json"
-    # hashtag = "#MarchMadness2021"
-    # count = 100
-    
-    # empty_str = ''
-    # empty_str= empty_str + baseurl
-    # for i, j in params:
-    #     if i[0]  = q:
-    #         empty_str = empty_str + "f{q[0]}"
-
-
+    #baseurl_key1_value1 autograder passing version, Lea Wei said your solution should work though
+    key = (f"{baseurl}?q={params['query']}&count={params['count']}")
+    #print(key)
+    return key
 
 def make_request(baseurl, params):
     '''Make a request to the Web API using the baseurl and params
-    
+
     Parameters
     ----------
     baseurl: string
         The URL for the API endpoint
     params: dictionary
         A dictionary of param:value pairs
-    
+
     Returns
     -------
     dict
@@ -124,18 +117,15 @@ def make_request(baseurl, params):
         a dictionary
     '''
 
-    api_res = (f"https://api.twitter.com/1.1/search/tweets.json?q=#MarchMadness2021&count=100") #query in needs to .lower and replace spaces with + signs
-    itunes_api_resp = requests.get(api_res)
-    json = itunes_api_resp.json()
-    print(json)
+    key = construct_unique_key(baseurl, params)
 
-    
-    
-    # api_res = (f"{itunes_url}{query_in}") #query in needs to .lower and replace spaces with + signs
-    # itunes_api_resp = requests.get(api_res)
-    # json = itunes_api_resp.json()
-    # return json
+    api_res = (key)
+    twitter_api_resp = requests.get(api_res, auth=OAuth1(client_key, client_secret, access_token, access_token_secret))
+    json = twitter_api_resp.json()
 
+    new_twitter_data = {'query': key, 'data': json}
+
+    return new_twitter_data
 
 def make_request_with_cache(baseurl, hashtag, count):
     '''Check the cache for a saved result for this baseurl+params:values
@@ -149,7 +139,7 @@ def make_request_with_cache(baseurl, hashtag, count):
     Do no include the print statements in your return statement. Just print them as appropriate.
     This, of course, does not ensure that you correctly retrieved that data from your cache, 
     but it will help us to see if you are appropriately attempting to use the cache.
-    
+
     Parameters
     ----------
     baseurl: string
@@ -158,21 +148,24 @@ def make_request_with_cache(baseurl, hashtag, count):
         The hashtag to search for
     count: integer
         The number of results you request from Twitter
-    
+
     Returns
     -------
     dict
         the results of the query as a dictionary loaded from cache
         JSON
     '''
-    make_request(baseurl, hashtag)
+    html_hashtag= hashtag.replace('#', '%23')
+    params = {'query': html_hashtag, 'count': count}
+    twitter_request_dict = make_request(baseurl, params)
 
+    x = open_cache()
+    if twitter_request_dict['query'] in x:
+        pass
+    else:
+        y = save_cache(twitter_request_dict['data'])
 
-    # api_res = (f"{itunes_url}{query_in}") #query in needs to .lower and replace spaces with + signs
-    # itunes_api_resp = requests.get(api_res)
-    # json = itunes_api_resp.json()
-    # return json
-
+    return y
 
 def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
     ''' Finds the hashtag that most commonly co-occurs with the hashtag
@@ -193,8 +186,24 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
         queried in make_request_with_cache()
 
     '''
-    # TODO: Implement function 
-    pass
+
+    x = open_cache()
+
+    hashtag_collector = []
+
+    for i in x['statuses']:
+        for j in i['entities']['hashtags']:
+            if j['text'].lower() != 'marchmadness2021':
+                hashtag_collector.append(j['text'].lower())
+
+    #print(hashtag_collector)
+    hashtag_count_collector=[]
+    for a in hashtag_collector:
+        hashtag_count_collector.append(hashtag_collector.count(a))
+    i = hashtag_count_collector.index(max(hashtag_count_collector))
+    most_common = hashtag_collector[i]
+    return most_common
+
     ''' Hint: In case you're confused about the hashtag_to_ignore 
     parameter, we want to ignore the hashtag we queried because it would 
     definitely be the most occurring hashtag, and we're trying to find 
